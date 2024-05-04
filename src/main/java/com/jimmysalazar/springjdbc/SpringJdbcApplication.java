@@ -11,8 +11,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 
 import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 @SpringBootApplication
@@ -32,8 +35,39 @@ public class SpringJdbcApplication implements ApplicationRunner {
 		int rows = template.update("insert into address (street, number, pc, employee_id) values (?,?,?,?)", "Av. revol", "123A", "244", 2);
 		log.info("Rows affected {}",rows);
 
-		List<Employee> employeeList = template.query("SELECT * FROM employee", new EmployeeRowMapper());
-		for (Employee employee: employeeList) {
+		// Forma tradicional
+		//List<Employee> employeeList = template.query("SELECT * FROM employee", new EmployeeRowMapper());
+
+		// Con función anónima (Lambdas)
+		List<Employee> employeeList = template.query("SELECT * FROM employee", new RowMapper<Employee>() {
+			// Función que se ejecuta en este momento y que implementa la interfaz RowMapper
+			// Es equivalente a crear una clase separada
+			@Override
+			public Employee mapRow(ResultSet rs, int rowNum) throws SQLException {
+				Employee emp = new Employee();
+				emp.setId(rs.getInt(1));
+				emp.setName(rs.getString(2));
+				emp.setLastname(rs.getString(3));
+				emp.setAge(rs.getInt(4));
+				emp.setSalary(rs.getDouble(5));
+				return emp;
+			}
+		});
+
+		// Lambda - Para un query que sólo se utilizará una vez
+		// si se utilizará en varios lugares, mejor crear una clase aparte
+		List<Employee> employeeList2 = template.query("SELECT * FROM employee", (rs, rowNum) -> {
+				Employee emp = new Employee();
+				emp.setId(rs.getInt(1));
+				emp.setName(rs.getString(2));
+				emp.setLastname(rs.getString(3));
+				emp.setAge(rs.getInt(4));
+				emp.setSalary(rs.getDouble(5));
+				return emp;
+			}
+		);
+
+		for (Employee employee: employeeList2) {
 			log.info("Employee info Name {} lastname {} age{} salary{}", employee.getName(), employee.getLastname(), employee.getAge(), employee.getSalary());
 		}
 	}
