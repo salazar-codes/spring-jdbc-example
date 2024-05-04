@@ -1,5 +1,7 @@
 package com.jimmysalazar.springjdbc;
 
+import com.jimmysalazar.springjdbc.mappers.EmployeeRowMapper;
+import com.jimmysalazar.springjdbc.models.Employee;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+import java.util.List;
 
 @SpringBootApplication
 public class SpringJdbcApplication implements ApplicationRunner {
@@ -28,6 +31,11 @@ public class SpringJdbcApplication implements ApplicationRunner {
 
 		int rows = template.update("insert into address (street, number, pc, employee_id) values (?,?,?,?)", "Av. revol", "123A", "244", 2);
 		log.info("Rows affected {}",rows);
+
+		List<Employee> employeeList = template.query("SELECT * FROM employee", new EmployeeRowMapper());
+		for (Employee employee: employeeList) {
+			log.info("Employee info Name {} lastname {} age{} salary{}", employee.getName(), employee.getLastname(), employee.getAge(), employee.getSalary());
+		}
 	}
 
 	public static void main(String[] args) {
