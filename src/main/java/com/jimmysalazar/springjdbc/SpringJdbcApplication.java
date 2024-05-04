@@ -14,12 +14,13 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 
 import javax.sql.DataSource;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Arrays;
 import java.util.List;
 
@@ -90,11 +91,31 @@ public class SpringJdbcApplication implements ApplicationRunner {
 			log.info("Employee name {}", name);
 		}
 
+		/*
+		// Bulk insert
 		insertAddresses(Arrays.asList(
 				new Address("Calle 2","23a",322,3),
 				new Address("Calle 3","23b",3242,2),
 				new Address("Calle 4","23c",32652,5)
 		));
+		 */
+
+
+		// Add KeyHolder
+		KeyHolder keyHolder = new GeneratedKeyHolder();
+		int rowsImpacted = template.update(new PreparedStatementCreator() {
+			@Override
+			public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+				PreparedStatement statement = con.prepareStatement("insert into address (street, number, pc, employee_id) values (?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
+				statement.setString(1, "Av. revol");
+				statement.setString(2, "123A23");
+				statement.setInt(3, 5555);
+				statement.setInt(4, 5);
+				return statement;
+			}
+		}, keyHolder);
+		log.info("Rows impacted {}", rowsImpacted);
+		log.info("Generated key holder {}", keyHolder.getKey().intValue());
 	}
 
 	public void insertAddresses(List<Address> addresses){
