@@ -10,6 +10,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -32,8 +33,14 @@ public class SpringJdbcApplication implements ApplicationRunner {
 		Double maxSalary = template.queryForObject("select MAX(salary) from employee", Double.class);
 		log.info("max salary {}", maxSalary);
 
-		int rows = template.update("insert into address (street, number, pc, employee_id) values (?,?,?,?)", "Av. revol", "123A", "244", 2);
-		log.info("Rows affected {}",rows);
+		try {
+			int rows = template.update("insert into address (street, number, pc, employee_id) values (?,?,?,?)", "Av. revol", "123A", "244", 15);
+			log.info("Rows affected {}",rows);
+
+		} catch(DataAccessException e){
+			log.info("Exception {}", e.getClass()); // En Spring viene de DataAccessException (Usar esta)
+			log.info("Exception cause {}", e.getCause()); // La causa es un SQLException propia de jdbcTemplate
+		}
 
 		// Forma tradicional
 		//List<Employee> employeeList = template.query("SELECT * FROM employee", new EmployeeRowMapper());
