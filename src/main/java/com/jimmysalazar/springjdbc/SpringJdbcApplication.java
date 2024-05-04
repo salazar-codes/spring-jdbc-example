@@ -25,6 +25,9 @@ public class SpringJdbcApplication implements ApplicationRunner {
 
 		Double maxSalary = template.queryForObject("select MAX(salary) from employee", Double.class);
 		log.info("max salary {}", maxSalary);
+
+		int rows = template.update("insert into address (street, number, pc, employee_id) values (?,?,?,?)", "Av. revol", "123A", "244", 2);
+		log.info("Rows affected {}",rows);
 	}
 
 	public static void main(String[] args) {
